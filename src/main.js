@@ -3,6 +3,9 @@ import App from "./App.vue";
 import router from "./router";
 import directive from "./directives";
 
+import './assets/styles/variable.scss'
+
+
 createApp(App)
   .use(router)
   .use(directive)
