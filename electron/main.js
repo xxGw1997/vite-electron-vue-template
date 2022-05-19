@@ -11,6 +11,7 @@ const Dashboard = require("../src/wins/dashboard");
 // import Launch from "../src/wins/launch";
 const Launch = require("../src/wins/launch");
 
+
 const NODE_ENV = process.env.NODE_ENV;
 
 function createWindow() {
@@ -29,6 +30,17 @@ function createWindow() {
     "http://localhost:3000" :
     `file://${path.join(__dirname, "../dist/index.html")}`
   );
+}
+
+const getSize = () => {
+  const {
+    size,
+    scaleFactor
+  } = screen.getPrimaryDisplay()
+  return {
+    width: size.width * scaleFactor,
+    height: size.height * scaleFactor
+  }
 }
 
 app.on("ready", async () => {
@@ -50,7 +62,11 @@ app.on("ready", async () => {
 });
 
 ipcMain.on('recive-desktop', async (event) => {
-  const source = await desktopCapturer.getSources({ types: ['window', 'screen']})
+  const sizeInfo = getSize()
+  const source = await desktopCapturer.getSources({
+    types: ['window', 'screen'],
+    thumbnailSize: sizeInfo
+  })
   event.reply('reply-source', source[0])
 })
 
