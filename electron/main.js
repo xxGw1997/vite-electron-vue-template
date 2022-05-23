@@ -3,14 +3,16 @@ const {
   app,
   BrowserWindow,
   desktopCapturer,
-  ipcMain
+  screen,
+  ipcMain,
+  shell,
 } = require("electron");
 const Main = require("electron/main");
 const path = require("path");
 const Dashboard = require("../src/wins/dashboard");
 // import Launch from "../src/wins/launch";
 const Launch = require("../src/wins/launch");
-
+const { httpServer } = require("../src/utils/server");
 
 const NODE_ENV = process.env.NODE_ENV;
 
@@ -26,22 +28,19 @@ function createWindow() {
 
   // 加载 index.html
   mainWindow.loadURL(
-    NODE_ENV === "development" ?
-    "http://localhost:3000" :
-    `file://${path.join(__dirname, "../dist/index.html")}`
+    NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : `file://${path.join(__dirname, "../dist/index.html")}`
   );
 }
 
 const getSize = () => {
-  const {
-    size,
-    scaleFactor
-  } = screen.getPrimaryDisplay()
+  const { size, scaleFactor } = screen.getPrimaryDisplay();
   return {
     width: size.width * scaleFactor,
-    height: size.height * scaleFactor
-  }
-}
+    height: size.height * scaleFactor,
+  };
+};
 
 app.on("ready", async () => {
   const launchPage = new Launch({
@@ -50,6 +49,9 @@ app.on("ready", async () => {
   });
 
   launchPage.on("show", () => {
+    httpServer(()=>{
+      console.log('server is running...');
+    });
     const dashboardPage = new Dashboard({
       width: 1000,
       height: 800,
@@ -61,14 +63,20 @@ app.on("ready", async () => {
   });
 });
 
-ipcMain.on('recive-desktop', async (event) => {
-  const sizeInfo = getSize()
+ipcMain.on("directory-open", (event, data) => {
+  console.log(4565);
+  const file = path.join("d:/records", data);
+  shell.showItemInFolder(file);
+});
+
+ipcMain.on("recive-desktop", async (event) => {
+  const sizeInfo = getSize();
   const source = await desktopCapturer.getSources({
-    types: ['window', 'screen'],
-    thumbnailSize: sizeInfo
-  })
-  event.reply('reply-source', source[0])
-})
+    types: ["window", "screen"],
+    thumbnailSize: sizeInfo,
+  });
+  event.reply("reply-source", source[0]);
+});
 
 // 这段程序将会在 Electron 结束初始化
 // 和创建浏览器窗口的时候调用
@@ -85,7 +93,7 @@ ipcMain.on('recive-desktop', async (event) => {
 
 // 除了 macOS 外，当所有窗口都被关闭的时候退出程序。 因此，通常对程序和它们在
 // 任务栏上的图标来说，应当保持活跃状态，直到用户使用 Cmd + Q 退出。
-app.on("window-all-closed", function () {
+app.on("window-all-closed", function() {
   if (process.platform !== "darwin") app.quit();
 });
 
