@@ -73,11 +73,19 @@ const recordStart = (stream) => {
 
 const sourceStart = async () => {
   if (isRecord.value) {
-    timer.value && clearTimeout(timer.value);
-    timestamp.value = 0;
-    recorder.value && recorder.value.stop();
+    ipcRenderer.send("stopRecord");
     return;
   }
+  ipcRenderer.send("startRecord");
+};
+
+ipcRenderer.on("record-stop", () => {
+  timer.value && clearTimeout(timer.value);
+  timestamp.value = 0;
+  recorder.value && recorder.value.stop();
+});
+
+ipcRenderer.on("record-start", async () => {
   const source = await getSource();
 
   const stream = await navigator.mediaDevices.getUserMedia({
@@ -93,16 +101,14 @@ const sourceStart = async () => {
     },
   });
   recordStart(stream);
+});
+
+const videoUrl = ref("");
+const handlePlay = (file) => {};
+
+const openDir = (item) => {
+  ipcRenderer.send("directory-open", item);
 };
-
-const videoUrl = ref('')
-const handlePlay = (file) => {
-  
-}
-
-const openDir = (item)=>{
-  ipcRenderer.send('directory-open',item)
-}
 </script>
 <template>
   <Header />
@@ -134,8 +140,12 @@ const openDir = (item)=>{
       </div>
       <div class="screen-preview">
         <div class="img">
-          <img :src="previewImg" v-if="videoUrl === ''"/>
-          <video :src="`http://localhost:9000/${videoUrl}`" controls v-else></video>
+          <img :src="previewImg" v-if="videoUrl === ''" />
+          <video
+            :src="`http://localhost:9000/${videoUrl}`"
+            controls
+            v-else
+          ></video>
         </div>
       </div>
     </div>

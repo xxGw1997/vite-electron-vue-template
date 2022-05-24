@@ -12,6 +12,7 @@ const path = require("path");
 const Dashboard = require("../src/wins/dashboard");
 // import Launch from "../src/wins/launch";
 const Launch = require("../src/wins/launch");
+const Suspend = require("../src/wins/ball");
 const { httpServer } = require("../src/utils/server");
 
 const NODE_ENV = process.env.NODE_ENV;
@@ -41,7 +42,7 @@ const getSize = () => {
     height: size.height * scaleFactor,
   };
 };
-
+let dashboardPage, suspendBall;
 app.on("ready", async () => {
   const launchPage = new Launch({
     width: 500,
@@ -49,10 +50,15 @@ app.on("ready", async () => {
   });
 
   launchPage.on("show", () => {
-    httpServer(()=>{
-      console.log('server is running...');
+    httpServer(() => {
+      console.log("server is running...");
     });
-    const dashboardPage = new Dashboard({
+    suspendBall = new Suspend({
+      width: 80,
+      height: 80,
+    });
+
+    dashboardPage = new Dashboard({
       width: 1000,
       height: 800,
     });
@@ -61,6 +67,16 @@ app.on("ready", async () => {
       launchPage.close();
     });
   });
+});
+
+ipcMain.on("startRecord", () => {
+  dashboardPage.getWebContents().send("record-start");
+  suspendBall.getWebContents().send("record-start");
+});
+
+ipcMain.on("stopRecord", () => {
+  dashboardPage.getWebContents().send("record-stop");
+  suspendBall.getWebContents().send("record-stop");
 });
 
 ipcMain.on("directory-open", (event, data) => {

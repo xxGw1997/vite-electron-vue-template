@@ -1,4 +1,4 @@
-const { BrowserWindow, ipcMain, app } = require("electron");
+const { BrowserWindow, ipcMain, app, webContents } = require("electron");
 // import { BrowserWindow } from "electron";
 const events = require("events");
 
@@ -66,6 +66,10 @@ class Dashboard extends events {
     ipcMain.on("move-main", (e, { x, y }) => {
       this.windowInstance && this.windowInstance.setPosition(x, y);
     });
+  }
+
+  getWebContents(){
+    return this.windowInstance.webContents
   }
 }
 

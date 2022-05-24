@@ -11,6 +11,11 @@ const routes = [
     name: "Dashboard",
     component: () => import("../pages/dashboard.vue"),
   },
+  {
+    path: "/suspend",
+    name: "Suspend",
+    component: () => import("../pages/suspend.vue"),
+  },
 ];
 
 const router = createRouter({
